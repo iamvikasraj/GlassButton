@@ -11,7 +11,7 @@ import SwiftUI
 struct GlassButtonApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ArrowUpDemoView()
         }
     }
 }
