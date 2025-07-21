@@ -1,31 +1,4 @@
 import SwiftUI
-import CoreMotion
-internal import Combine
-
-// MARK: - Device Motion → Always-Up Arrow
-final class MotionManager: ObservableObject {
-    private let manager = CMMotionManager()
-    private let queue   = OperationQueue()
-    
-    @Published var rotation: Angle = .degrees(0)   // angle for the arrow
-    
-    init() {
-        manager.deviceMotionUpdateInterval = 1 / 30
-        start()
-    }
-    
-    private func start() {
-        guard manager.isDeviceMotionAvailable else { return }
-        
-        manager.startDeviceMotionUpdates(to: queue) { [weak self] motion, _ in
-            guard let yaw = motion?.attitude.yaw else { return }
-            // negative yaw so arrow points toward device "top"
-            DispatchQueue.main.async { self?.rotation = .radians(-yaw) }
-        }
-    }
-    
-    deinit { manager.stopDeviceMotionUpdates() }
-}
 
 // MARK: - Custom Colors & Gradients
 extension Color {
@@ -43,168 +16,214 @@ extension Color {
     static let buttonFill = Color(red: 120/255, green: 133/255, blue: 141/255)
 }
 
-// MARK: - Press Gesture Extension
-extension View {
-    func onPressGesture(pressing: @escaping (Bool) -> Void, perform: @escaping () -> Void) -> some View {
-        self.simultaneousGesture(
-            DragGesture(minimumDistance: 0)
-                .onChanged { _ in pressing(true) }
-                .onEnded { _ in
-                    pressing(false)
-                    perform()
-                }
-        )
-    }
-}
-
-// MARK: - MultiStrokeButton with Motion Control
-struct MultiStrokeButton: View {
-    let rotation: Angle          // arrow rotation supplied by MotionManager
-    let action: () -> Void
-
-    @State private var isPressed = false
+// MARK: - Arrow Button View
+struct ArrowButton: View {
+    var rotation: Angle = .zero
 
     var body: some View {
-        Button(action: {
-            action()
-            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-        }) {
-            ZStack {
-                // Blue circle inside
-                Rectangle()
-                               .foregroundColor(.clear)
-                               .frame(width: 90, height: 90)
-                               .background(
-                               LinearGradient(
-                               stops: [
-                               Gradient.Stop(color: Color(red: 0.48, green: 0.52, blue: 0.55), location: 0.00),
-                               Gradient.Stop(color: Color(red: 0.64, green: 0.67, blue: 0.7), location: 1.00),
-                               ],
-                               startPoint: UnitPoint(x: 0.5, y: 0),
-                               endPoint: UnitPoint(x: 0.5, y: 1)
-                               )
-                               )
-                               .cornerRadius(410)
-                               .blur(radius: 8)
-                               .offset(y: 14)
-                
-                // Arrow on top
-                Image("arrow")
-                    .resizable()
-                    .renderingMode(.original)
-                    .scaledToFit()
-                    .frame(width: 48, height: 48)
-                    .foregroundColor(.white)
-                    .rotationEffect(rotation)           // Apply motion rotation here
-                    .shadow(color: .black.opacity(0.2), radius: 3, y: 8)
-            }
-            .frame(width: 125, height: 125)
-            .background(Color.buttonFill)
-            .clipShape(Circle())
+        ZStack {
+            // Base Fill Circle + Stroke Overlays
+            Circle()
+                .fill(Color.buttonFill)
+                .frame(width: 125, height: 125)
+                .overlay(strokeOverlay) // ✅ Single overlay layer
 
-                // Stroke 1: Top-left white highlight
-                .overlay(
-                    Circle()
-                        .stroke(
-                            LinearGradient(
-                                gradient: Gradient(stops: [
-                                    .init(color: Color.white.opacity(0.8), location: 0.0),  // bright top
-                                    .init(color: Color.white.opacity(0.0), location: 0.3)   // fades out
-                                ]),
-                                startPoint: .top,
-                                endPoint: .bottom
-                            ),
-                            lineWidth: 3
-                        )
-                        .offset(x: 0, y: 0)       // slight downward shift to catch the light
-                        .rotationEffect(rotation)  // Rotate with arrow
-                        .blendMode(.normal)
+            // Blurred Reflection Layer Behind
+            Rectangle()
+                .foregroundColor(.clear)
+                .frame(width: 90, height: 90)
+                .background(
+                    LinearGradient(
+                        stops: [
+                            Gradient.Stop(color: Color(red: 0.48, green: 0.52, blue: 0.55), location: 0.00),
+                            Gradient.Stop(color: Color(red: 0.64, green: 0.67, blue: 0.7), location: 1.00),
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
                 )
-            
-                .overlay(
-                    Circle()
-                        .stroke(
-                            LinearGradient(
-                                gradient: Gradient(stops: [
-                                    .init(color: Color.black.opacity(0.4), location: 0.0),   // strong dark at start
-                                    .init(color: Color.black.opacity(0.0), location: 0.1)    // quick fade
-                                ]),
-                                startPoint: .leading,
-                                endPoint: .topTrailing
-                            ),
-                            lineWidth: 3
-                        )
-                        .offset(x: 0, y: 0)
-                        .rotationEffect(rotation)  // Rotate with arrow
-                        .blendMode(.darken)
+                .cornerRadius(410)
+                .blur(radius: 8)
+                .offset(y: 14)
+
+            // Arrow Image
+            Image("arrow")
+                .rotationEffect(rotation)
+                .shadow(color: .black.opacity(0.1), radius: 1, y: 1)
+        }
+        .contentShape(Circle())
+    }
+
+    // MARK: - Stroke Overlay Layer (Single Application)
+    var strokeOverlay: some View {
+        ZStack {
+            // Stroke 1
+            Circle()
+                .stroke(
+                    LinearGradient(
+                        gradient: Gradient(stops: [
+                            .init(color: .black.opacity(0.4), location: 0.0),
+                            .init(color: .black.opacity(0.0), location: 0.1)
+                        ]),
+                        startPoint: .leading,
+                        endPoint: .topTrailing
+                    ),
+                    lineWidth: 3
                 )
-            
-                .overlay(
-                    Circle()
-                        .stroke(
-                            LinearGradient(
-                                gradient: Gradient(stops: [
-                                    .init(color: Color.black.opacity(0.4), location: 0.0),   // strong dark at start
-                                    .init(color: Color.black.opacity(0.0), location: 0.1)    // quick fade
-                                ]),
-                                startPoint: .trailing,
-                                endPoint: .topLeading
-                            ),
-                            lineWidth: 3
-                        )
-                        .offset(x: 0, y: 0)
-                        .rotationEffect(rotation)  // Rotate with arrow
-                        .blendMode(.darken)
+                .blendMode(.darken)
+
+            // Stroke 2
+            Circle()
+                .stroke(
+                    LinearGradient(
+                        gradient: Gradient(stops: [
+                            .init(color: .black.opacity(0.4), location: 0.0),
+                            .init(color: .black.opacity(0.0), location: 0.1)
+                        ]),
+                        startPoint: .trailing,
+                        endPoint: .topLeading
+                    ),
+                    lineWidth: 3
                 )
-            
-                .overlay(
-                    Circle()
-                        .stroke(
-                            LinearGradient(
-                                gradient: Gradient(stops: [
-                                    .init(color: Color.white.opacity(0.8), location: 0.1),  // bright top
-                                    .init(color: Color.white.opacity(0.0), location: 0.4)   // fades out
-                                ]),
-                                startPoint: .bottom,
-                                endPoint: .top
-                            ),
-                            lineWidth: 2
-                        )
-                        .offset(x: 0, y: 0)       // slight downward shift to catch the light
-                        .rotationEffect(rotation)  // Rotate with arrow
-                        .blendMode(.overlay)
+                .blendMode(.darken)
+
+            // Stroke 3
+            Circle()
+                .stroke(
+                    LinearGradient(
+                        gradient: Gradient(stops: [
+                            .init(color: .white.opacity(0.8), location: 0.1),
+                            .init(color: .white.opacity(0.0), location: 0.4)
+                        ]),
+                        startPoint: .bottom,
+                        endPoint: .top
+                    ),
+                    lineWidth: 3
                 )
-            }
-        .buttonStyle(.plain)
-//        .shadow(color: .white.opacity(isPressed ? 0.1 : 0.1), radius: isPressed ? 8 : 4, y: isPressed ? 8 :8)
-        .scaleEffect(isPressed ? 0.94 : 1)
-        .animation(.easeOut(duration: 0.25), value: isPressed)
-        .onPressGesture(
-            pressing: { pressing in isPressed = pressing },
-            perform: {}
-        )
-        
+                .blendMode(.overlay)
+
+            // Stroke 4
+            Circle()
+                .stroke(
+                    LinearGradient(
+                        gradient: Gradient(stops: [
+                            .init(color: .white.opacity(0.8), location: 0.0),
+                            .init(color: .white.opacity(0.0), location: 0.3)
+                        ]),
+                        startPoint: .top,
+                        endPoint: .bottom
+                    ),
+                    lineWidth: 3
+                )
+                .blendMode(.normal)
+        }
+        // ✅ Ensures it's all part of a single overlay — NOT stacked circles.
     }
 }
 
-// MARK: - Demo Screen
-struct ArrowUpDemoView: View {
-    @StateObject private var motion = MotionManager()
-    
+
+struct ArrowDateSelectorView: View {
+    @State private var currentDate = Date()
+
     var body: some View {
         ZStack {
             Color.customGradient
                 .ignoresSafeArea()
-            
-            MultiStrokeButton(rotation: motion.rotation) {
-                print("Arrow button tapped")
+
+            HStack(spacing: -30) {
+                // Decrement Button (Previous Day)
+                
+                
+                Button(action: {
+                    currentDate = Calendar.current.date(byAdding: .day, value: -1, to: currentDate) ?? currentDate
+                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                }) {
+                    ArrowButton(rotation: .degrees(180))
+                        .scaleEffect(0.4)
+                }
+
+                // Date Display
+                VStack(spacing: 4) {
+                    // Top Label: "Today", "Tomorrow", "Yesterday", or Date
+                    Text(formattedLabel)
+                        .font(.system(size: 24, weight: .regular))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [Color.white.opacity(0.8), Color.white.opacity(0.2)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .contentTransition(.numericText())
+                        .animation(.spring(response: 0.25, dampingFraction: 0.5), value: formattedLabel)
+                        
+
+                    // Bottom Label: Visible only for Today, Tomorrow, Yesterday
+                    if showsDetailedDate {
+                        Text(currentDate.formatted(.dateTime.weekday().month().day()))
+                            .font(.system(size: 14, weight: .regular))
+                            .foregroundStyle(.white.opacity(0.6))
+                            .contentTransition(.numericText())
+                            .animation(.spring(response: 0.25, dampingFraction: 0.5), value: formattedLabel)
+                            
+                    }
+                }
+                .frame(width: 120)
+
+                // Increment Button (Next Day)
+                Button(action: {
+                    currentDate = Calendar.current.date(byAdding: .day, value: 1, to: currentDate) ?? currentDate
+                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                }) {
+                    ArrowButton(rotation: .degrees(0))
+                        .scaleEffect(0.4)
+                }
             }
+            .padding()
         }
+    }
+
+    // Top Label Logic
+    private var formattedLabel: String {
+        let calendar = Calendar.current
+        if calendar.isDateInToday(currentDate) {
+            return "Today"
+        } else if calendar.isDateInTomorrow(currentDate) {
+            return "Tomorrow"
+        } else if calendar.isDateInYesterday(currentDate) {
+            return "Yesterday"
+        } else {
+            let formatter = DateFormatter()
+            formatter.setLocalizedDateFormatFromTemplate("MMMMd") // e.g., "July 21"
+            return formatter.string(from: currentDate)
+        }
+    }
+
+    // Should we show the detailed label below?
+    private var showsDetailedDate: Bool {
+        let calendar = Calendar.current
+        return calendar.isDateInToday(currentDate)
+            || calendar.isDateInTomorrow(currentDate)
+            || calendar.isDateInYesterday(currentDate)
+    }
+}
+
+
+
+
+struct AnimatedCounterText: View {
+    let number: Int
+    @State private var animate = false
+
+    var body: some View {
+        Text(String(number))
+            .font(.system(size: 60, weight: .regular, design: .default))
+            .contentTransition(.numericText())
+            .animation(.spring(response: 0.25, dampingFraction: 0.5), value: animate)
     }
 }
 
 // MARK: - Preview
-#Preview
-{
-ArrowUpDemoView()
+#Preview {
+    ArrowDateSelectorView()
 }
