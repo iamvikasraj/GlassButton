@@ -1,6 +1,6 @@
 //
-//  GlassButtonApp.swift
-//  GlassButton
+//  ArrowDateSelectorApp.swift
+//  ArrowDateSelector
 //
 //  Created by Vikas Raj Yadav on 02/07/25.
 //
@@ -8,7 +8,7 @@
 import SwiftUI
 
 @main
-struct GlassButtonApp: App {
+struct ArrowDateSelectorApp: App {
     var body: some Scene {
         WindowGroup {
            ArrowDateSelectorView()
