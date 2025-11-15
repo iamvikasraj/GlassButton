@@ -4,7 +4,7 @@ A beautiful, interactive counter component for SwiftUI featuring glassmorphic ar
 
 ## 📱 Demo
 
-https://github.com/user-attachments/assets/ebdbc649-573e-4d3e-a311-e9fe7272ecfe
+
 
 ## 🌿 Branches
 
