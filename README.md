@@ -1,6 +1,6 @@
-# ArrowDateSelector
+# jordansingerbutton
 
-A beautiful, interactive date selector component for SwiftUI featuring glassmorphic arrow buttons and smooth animations.
+A beautiful, interactive counter component for SwiftUI featuring glassmorphic arrow buttons and smooth animations.
 
 ## 📱 Demo
 
@@ -9,7 +9,7 @@ https://github.com/user-attachments/assets/ebdbc649-573e-4d3e-a311-e9fe7272ecfe
 ## 🌿 Branches
 
 ### `main` - Full App
-The complete ArrowDateSelector app with date navigation functionality.
+The complete jordansingerbutton app with counter functionality.
 
 ### `tutorial` - Arrow Button Component
 A clean, standalone version focusing just on the beautiful arrow button component. Perfect for learning and sharing!
@@ -45,12 +45,10 @@ The complete app includes date navigation with "Today", "Tomorrow", "Yesterday" 
 ## 📁 Project Structure
 
 ```
-ArrowDateSelector/
-├── ArrowButton.swift          # The beautiful arrow button component
-├── ContentView.swift          # Full date selector app
-├── ArrowDateSelectorApp.swift  # App entry point
-└── Experiments/                # Experimental components
-    └── TappableArrowButton.swift
+jordansingerbutton/
+├── CounterView.swift          # Counter with arrow buttons (includes ArrowButton)
+├── JordanSingerButtonApp.swift  # App entry point
+└── Assets.xcassets/            # Arrow image asset
 ```
 
 ## 🎨 Features
