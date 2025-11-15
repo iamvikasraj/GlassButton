@@ -1,7 +1,7 @@
 {
   "images" : [
     {
-      "filename" : "GlassButton 2.png",
+      "filename" : "jsb.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -13,7 +13,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "GlassButton.png",
+      "filename" : "jsb 1.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -25,7 +25,7 @@
           "value" : "tinted"
         }
       ],
-      "filename" : "GlassButton 1.png",
+      "filename" : "jsb 2.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"

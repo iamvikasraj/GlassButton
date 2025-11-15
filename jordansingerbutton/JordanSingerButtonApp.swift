@@ -8,14 +8,13 @@
 import SwiftUI
 
 @main
-struct JordanSingerButtonApp: App {
+struct JSBApp: App {
     var body: some Scene {
         WindowGroup {
             ZStack {
-                Color(red: 67/255, green: 80/255, blue: 89/255)
+                Color(Color(red: 0.92, green: 0.92, blue: 0.92))
                     .ignoresSafeArea()
-                
-                CounterView()
+                JSBView()
             }
         }
     }

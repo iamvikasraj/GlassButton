@@ -170,8 +170,8 @@ struct ScaleButtonStyle: ButtonStyle {
     }
 }
 
-// MARK: - Counter View
-struct CounterView: View {
+// MARK: - JSB View (Jordan Singer Button)
+struct JSBView: View {
     @State private var count: Int = 1
     @State private var shake: CGFloat = 0
     @State private var showError: Bool = false
@@ -206,7 +206,7 @@ struct CounterView: View {
                 
                 HStack(){
                     Text("\(count)")
-                        .font(.system(size: 72, weight: .bold, design: .serif))
+                        .font(.system(size: 72, weight: .bold, design: .default))
                         .foregroundStyle(
                             LinearGradient(
                                 colors: [.black.opacity(0.9), .gray.opacity(1.0)],
@@ -215,8 +215,8 @@ struct CounterView: View {
                             )
                         )
                         .modifier(ShakeEffect(animatableData: shake))
-                        .contentTransition(.numericText())
-                        .shadow(color: .black.opacity(0.3), radius: 1, x: 0, y: 8)
+                        .contentTransition(.numericText(countsDown: (count != 0)))
+//                        .shadow(color: .black.opacity(0.3), radius: 1, x: 0, y: 8)
                         .animation(.spring(response: 0.8, dampingFraction: 0.9), value: count)
                 }
                 .frame(width: 60)
@@ -253,10 +253,7 @@ struct CounterView: View {
 // MARK: - Preview
 #Preview {
     ZStack {
-        Color(Color(red: 0.92, green: 0.92, blue: 0.92))
-            .ignoresSafeArea()
-        
-        CounterView()
+        JSBView()
     }
 }
 
