@@ -165,8 +165,8 @@ struct ShakeEffect: GeometryEffect {
 struct ScaleButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .scaleEffect(configuration.isPressed ? 0.9 : 1.0)
-            .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
+            .scaleEffect(configuration.isPressed ? 0.8 : 1.0)
+            .animation(.spring(duration: 0.1), value: configuration.isPressed)
     }
 }
 
@@ -177,75 +177,63 @@ struct JSBView: View {
     @State private var showError: Bool = false
 
     var body: some View {
-        VStack(spacing: 40) {
-            // Number Display
-            // Arrow Buttons
-            HStack(spacing: 0) {
-                // Decrement Button
-                Button {
-                    if count > 1 {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
-                            count -= 1
-                            showError = false
-                        }
-                    } else {
-                        // Shake animation when limit exceeded
-                        withAnimation(.default) {
-                            shake += 1
-                        }
-                        withAnimation(.easeInOut(duration: 0.3)) {
-                            showError = true
-                        }
+        HStack(spacing: -12) {
+            // Decrement Button
+            Button {
+                if count > 1 {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                        count -= 1
+                        showError = false
                     }
-                } label: {
-                    ArrowButton(rotation: .degrees(0), imageName: "minus")
-                        .scaleEffect(0.5)
-                }
-                .buttonStyle(ScaleButtonStyle())
-                .accessibilityLabel("Decrease count")
-                
-                HStack(){
-                    Text("\(count)")
-                        .font(.system(size: 72, weight: .bold, design: .default))
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [.black.opacity(0.9), .gray.opacity(1.0)],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                        )
-                        .modifier(ShakeEffect(animatableData: shake))
-                        .contentTransition(.numericText(countsDown: (count != 0)))
-//                        .shadow(color: .black.opacity(0.3), radius: 1, x: 0, y: 8)
-                        .animation(.spring(response: 0.8, dampingFraction: 0.9), value: count)
-                }
-                .frame(width: 60)
-                
-                
-
-                // Increment Button
-                Button {
-                    if count < 9 {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
-                            count += 1
-                            showError = false
-                        }
-                    } else {
-                        // Shake animation when limit exceeded
-                        withAnimation(.default) {
-                            shake += 1
-                        }
-                        withAnimation(.easeInOut(duration: 0.3)) {
-                            showError = true
-                        }
+                } else {
+                    // Shake animation when limit exceeded
+                    withAnimation(.default) {
+                        shake += 1
                     }
-                } label: {
-                    ArrowButton(rotation: .degrees(0), imageName: "plus")
-                        .scaleEffect(0.5)
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        showError = true
+                    }
                 }
-                .buttonStyle(ScaleButtonStyle())
-                .accessibilityLabel("Increase count")
+            } label: {
+                ArrowButton(rotation: .degrees(0), imageName: "minus")
+                    .scaleEffect(0.30)
             }
+            .buttonStyle(ScaleButtonStyle())
+            .accessibilityLabel("Decrease count")
+            
+            HStack(){
+                Text("\(count)")
+                    .font(.system(size: 30, weight: .semibold, design: .monospaced))
+                    .modifier(ShakeEffect(animatableData: shake))
+                    .contentTransition(.numericText(countsDown: (count != 0)))
+                    .animation(.spring(response: 0.8, dampingFraction: 0.9), value: count)
+            }
+            
+            
+
+            // Increment Button
+            Button {
+                if count < 4 {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                        count += 1
+                        showError = false
+                    }
+                } else {
+                    // Shake animation when limit exceeded
+                    withAnimation(.default) {
+                        shake += 1
+                    }
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        showError = true
+                    }
+                }
+            } label: {
+                ArrowButton(rotation: .degrees(0), imageName: "plus")
+                    .scaleEffect(0.30)
+            }
+            .buttonStyle(ScaleButtonStyle())
+            
+            .accessibilityLabel("Increase count")
         }
     }
 }
@@ -253,6 +241,7 @@ struct JSBView: View {
 // MARK: - Preview
 #Preview {
     ZStack {
+        MetalBackground(shaderType: .animatedMetallic)
         JSBView()
     }
 }

@@ -12,8 +12,7 @@ struct JSBApp: App {
     var body: some Scene {
         WindowGroup {
             ZStack {
-                Color(Color(red: 0.92, green: 0.92, blue: 0.92))
-                    .ignoresSafeArea()
+                MetalBackground(shaderType: .metallicGradient)
                 JSBView()
             }
         }
